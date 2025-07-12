@@ -151,10 +151,10 @@
 </section>
 
 <script>
- 
+  // Logged in user email (from localStorage or fallback for demo)
   const loggedInEmail = localStorage.getItem('userEmail') || 'user1@example.com';
 
- 
+  // Seed sample user data on first load (demo purpose)
   function seedSampleData() {
     const sampleUsers = [
       {
@@ -188,7 +188,7 @@
   }
   seedSampleData();
 
-
+  // Get all user profiles from localStorage
   function getAllUserProfiles() {
     const users = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -203,7 +203,8 @@
     return users;
   }
 
-
+  // Get requests from localStorage
+  // Format: [{from, to, status}]
   function getRequests() {
     const reqStr = localStorage.getItem('requests');
     return reqStr ? JSON.parse(reqStr) : [];
@@ -226,7 +227,7 @@
     return div;
   }
 
- 
+  // Render user cards with availability & search filter
   function renderUsers() {
     const container = document.getElementById('usersList');
     let users = getAllUserProfiles();
@@ -255,7 +256,7 @@
       const card = document.createElement('div');
       card.className = 'user-card';
 
-     
+      // Fixed: Use template literals inside backticks
       card.innerHTML = `
         <p><strong>Name:</strong> ${user.name || '(No name)'}</p>
         <p><strong>Email:</strong> ${user.email}</p>
@@ -276,7 +277,7 @@
     });
   }
 
- 
+  // Add a new request from loggedInEmail to toEmail
   function addRequest(toEmail) {
     if (!loggedInEmail) {
       alert('Please login first.');
@@ -289,7 +290,7 @@
 
     let requests = getRequests();
 
-   
+    // Prevent duplicate pending request
     const existing = requests.find(r => r.from === loggedInEmail && r.to === toEmail && r.status === 'pending');
     if (existing) {
       alert('You already have a pending request to this user.');
@@ -301,7 +302,7 @@
     renderRequests();
   }
 
- 
+  // Render requests sent by loggedInEmail
   function renderRequests() {
     const container = document.getElementById('requestsList');
     if (!loggedInEmail) {
@@ -324,7 +325,7 @@
       const div = document.createElement('div');
       div.className = 'request-item';
 
-
+      // Fixed: Use template literals inside backticks for multiline innerHTML
       div.innerHTML = `
         <strong>To:</strong> ${user.name || '(No name)'} <br />
         <strong>Email:</strong> ${req.to} <br />
@@ -342,7 +343,7 @@
     });
   }
 
-  
+  // Cancel a pending request
   function cancelRequest(toEmail) {
     let requests = getRequests();
     requests = requests.filter(r => !(r.from === loggedInEmail && r.to === toEmail && r.status === 'pending'));
@@ -351,11 +352,11 @@
     renderRequests();
   }
 
- 
+  // Add event listeners for filters
   document.getElementById('availabilityFilter').addEventListener('change', renderUsers);
   document.getElementById('searchInput').addEventListener('input', renderUsers);
 
-
+  // Initial render
   renderUsers();
   renderRequests();
 </script>
