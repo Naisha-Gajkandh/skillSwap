@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skill Swap Platform - Home</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    min-height: 100vh;
+    padding-top: 60px;
+  }
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #05223f;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 25px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  header .nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+    font-size: 16px;
+    transition: color 0.2s;
+  }
+  header .nav-links a:hover {
+    color: #27ae60;
+  }
+  .filters-search {
+    margin: 80px auto 20px;
+    max-width: 900px;
+    display: flex;
+    gap: 15px;
+    padding: 0 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  select, input[type="text"] {
+    padding: 10px 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    min-width: 180px;
+  }
+  #usersList, #requestsList {
+    max-width: 900px;
+    margin: 0 auto 50px;
+    padding: 0 20px;
+  }
+  .user-card, .request-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .user-card p {
+    margin: 0;
+  }
+  .user-card button.request-btn {
+    width: 120px;
+    padding: 8px;
+    margin-top: 10px;
+    background-color: #2ecc71;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    align-self: flex-start;
+  }
+  .user-card button.request-btn:hover {
+    background-color: #27ae60;
+  }
+  .request-item button {
+    align-self: flex-start;
+    padding: 6px 12px;
+    background: #e74c3c;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+  }
+  .request-item button:hover {
+    background-color: #c0392b;
+  }
+  .star-rating {
+    margin-top: 5px;
+  }
+  .star {
+    font-size: 18px;
+    color: gold;
+    margin-right: 3px;
+  }
+  .no-data {
+    text-align: center;
+    font-style: italic;
+    color: #777;
+    margin: 30px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div><strong>Skill Swap Platform</strong></div>
+  <nav class="nav-links">
+   
+    <a href="skillrequesed.html">Skill Requested</a>
+     <a href="profile.html">Profile</a>
+     <a href="login.html">login</a>
+  
+  </nav>
+</header>
+
+<div class="filters-search">
+  <select id="availabilityFilter">
+    <option value="">All Availability</option>
+    <option value="Weekdays">Weekdays</option>
+    <option value="Weekends">Weekends</option>
+    <option value="Evenings">Evenings</option>
+    <option value="Anytime">Anytime</option>
+  </select>
+
+  <input type="text" id="searchInput" placeholder="Search by name, skill offered, skill wanted..." />
+</div>
+
+<section id="usersList">
+  <!-- User cards will appear here -->
+</section>
+
+<section id="requestsList">
+  <h2>Your Requests</h2>
+  <!-- Requests list will appear here -->
+</section>
+
+<script>
+  // Logged in user email (from localStorage or fallback for demo)
+  const loggedInEmail = localStorage.getItem('userEmail') || 'user1@example.com';
+
+  // Seed sample user data on first load (demo purpose)
+  function seedSampleData() {
+    const sampleUsers = [
+      {
+        email: 'user1@example.com',
+        name: 'Alice',
+        skillOffered: 'Guitar',
+        skillWanted: 'Cooking',
+        availability: 'Weekends'
+      },
+      {
+        email: 'user2@example.com',
+        name: 'Bob',
+        skillOffered: 'Cooking',
+        skillWanted: 'Guitar',
+        availability: 'Evenings'
+      },
+      {
+        email: 'user3@example.com',
+        name: 'Charlie',
+        skillOffered: 'Painting',
+        skillWanted: 'Guitar',
+        availability: 'Weekdays'
+      }
+    ];
+
+    sampleUsers.forEach(user => {
+      if (!localStorage.getItem('profileData_' + user.email)) {
+        localStorage.setItem('profileData_' + user.email, JSON.stringify(user));
+      }
+    });
+  }
+  seedSampleData();
+
+  // Get all user profiles from localStorage
+  function getAllUserProfiles() {
+    const users = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('profileData_')) {
+        try {
+          const user = JSON.parse(localStorage.getItem(key));
+          users.push(user);
+        } catch {}
+      }
+    }
+    return users;
+  }
+
+  // Get requests from localStorage
+  // Format: [{from, to, status}]
+  function getRequests() {
+    const reqStr = localStorage.getItem('requests');
+    return reqStr ? JSON.parse(reqStr) : [];
+  }
+  function saveRequests(requests) {
+    localStorage.setItem('requests', JSON.stringify(requests));
+  }
+
+  // Create star rating dummy for demo
+  function createStarRating(email) {
+    const div = document.createElement('div');
+    div.className = 'star-rating';
+    const rating = Math.floor(Math.random() * 5) + 1;
+    for(let i=1; i<=5; i++) {
+      const star = document.createElement('span');
+      star.className = 'star';
+      star.textContent = i <= rating ? '★' : '☆';
+      div.appendChild(star);
+    }
+    return div;
+  }
+
+  // Render user cards with availability & search filter
+  function renderUsers() {
+    const container = document.getElementById('usersList');
+    let users = getAllUserProfiles();
+
+    const availFilter = document.getElementById('availabilityFilter').value.trim().toLowerCase();
+    const searchText = document.getElementById('searchInput').value.trim().toLowerCase();
+
+    users = users.filter(user => {
+      if(user.email === loggedInEmail) return false; // exclude self
+      const matchesAvailability = availFilter ? (user.availability && user.availability.toLowerCase() === availFilter) : true;
+      const matchesSearch = !searchText || (
+        (user.name && user.name.toLowerCase().includes(searchText)) ||
+        (user.skillOffered && user.skillOffered.toLowerCase().includes(searchText)) ||
+        (user.skillWanted && user.skillWanted.toLowerCase().includes(searchText))
+      );
+      return matchesAvailability && matchesSearch;
+    });
+
+    container.innerHTML = '';
+    if (users.length === 0) {
+      container.innerHTML = '<p class="no-data">No users found.</p>';
+      return;
+    }
+
+    users.forEach(user => {
+      const card = document.createElement('div');
+      card.className = 'user-card';
+
+      // Fixed: Use template literals inside backticks
+      card.innerHTML = `
+        <p><strong>Name:</strong> ${user.name || '(No name)'}</p>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Skills Offered:</strong> ${user.skillOffered || '(None)'}</p>
+        <p><strong>Skills Wanted:</strong> ${user.skillWanted || '(None)'}</p>
+        <p><strong>Availability:</strong> ${user.availability || '(Not set)'}</p>
+      `;
+
+      card.appendChild(createStarRating(user.email));
+
+      const btn = document.createElement('button');
+      btn.className = 'request-btn';
+      btn.textContent = 'Request';
+      btn.addEventListener('click', () => addRequest(user.email));
+      card.appendChild(btn);
+
+      container.appendChild(card);
+    });
+  }
+
+  // Add a new request from loggedInEmail to toEmail
+  function addRequest(toEmail) {
+    if (!loggedInEmail) {
+      alert('Please login first.');
+      return;
+    }
+    if (toEmail === loggedInEmail) {
+      alert('Cannot send request to yourself.');
+      return;
+    }
+
+    let requests = getRequests();
+
+    // Prevent duplicate pending request
+    const existing = requests.find(r => r.from === loggedInEmail && r.to === toEmail && r.status === 'pending');
+    if (existing) {
+      alert('You already have a pending request to this user.');
+      return;
+    }
+    requests.push({ from: loggedInEmail, to: toEmail, status: 'pending' });
+    saveRequests(requests);
+    alert('Request sent!');
+    renderRequests();
+  }
+
+  // Render requests sent by loggedInEmail
+  function renderRequests() {
+    const container = document.getElementById('requestsList');
+    if (!loggedInEmail) {
+      container.innerHTML = '<p class="no-data">Please login to see your requests.</p>';
+      return;
+    }
+
+    const requests = getRequests().filter(r => r.from === loggedInEmail);
+
+    if (requests.length === 0) {
+      container.innerHTML = '<h2>Your Requests</h2><p class="no-data">You have not sent any requests.</p>';
+      return;
+    }
+
+    container.innerHTML = '<h2>Your Requests</h2>';
+
+    requests.forEach(req => {
+      const user = JSON.parse(localStorage.getItem('profileData_' + req.to)) || { name: req.to };
+
+      const div = document.createElement('div');
+      div.className = 'request-item';
+
+      // Fixed: Use template literals inside backticks for multiline innerHTML
+      div.innerHTML = `
+        <strong>To:</strong> ${user.name || '(No name)'} <br />
+        <strong>Email:</strong> ${req.to} <br />
+        <strong>Status:</strong> ${req.status}
+      `;
+
+      if (req.status === 'pending') {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.addEventListener('click', () => cancelRequest(req.to));
+        div.appendChild(cancelBtn);
+      }
+
+      container.appendChild(div);
+    });
+  }
+
+  // Cancel a pending request
+  function cancelRequest(toEmail) {
+    let requests = getRequests();
+    requests = requests.filter(r => !(r.from === loggedInEmail && r.to === toEmail && r.status === 'pending'));
+    saveRequests(requests);
+    alert('Request cancelled.');
+    renderRequests();
+  }
+
+  // Add event listeners for filters
+  document.getElementById('availabilityFilter').addEventListener('change', renderUsers);
+  document.getElementById('searchInput').addEventListener('input', renderUsers);
+
+  // Initial render
+  renderUsers();
+  renderRequests();
+</script>
+
+</body>
+</html>

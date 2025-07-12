@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skill Requested - Manage Incoming Requests</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    padding: 60px 20px 40px;
+    min-height: 100vh;
+  }
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #05223f;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+  header .nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+    font-size: 16px;
+  }
+  header .nav-links a:hover {
+    color: #27ae60;
+  }
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 {
+    margin-bottom: 25px;
+    color: #05223f;
+  }
+  .request-item {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .request-info {
+    flex: 1;
+  }
+  .request-info p {
+    margin: 5px 0;
+  }
+  .btn-group button {
+    margin-left: 8px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    color: white;
+  }
+  .btn-accept {
+    background-color: #27ae60;
+  }
+  .btn-accept:hover {
+    background-color: #219150;
+  }
+  .btn-reject {
+    background-color: #e74c3c;
+  }
+  .btn-reject:hover {
+    background-color: #c0392b;
+  }
+  .status {
+    font-weight: bold;
+    text-transform: capitalize;
+    min-width: 90px;
+    text-align: center;
+  }
+  .status.pending {
+    color: #f39c12;
+  }
+  .status.accepted {
+    color: #27ae60;
+  }
+  .status.rejected {
+    color: #e74c3c;
+  }
+  .no-requests {
+    text-align: center;
+    font-style: italic;
+    color: #555;
+    margin-top: 50px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div><strong>Skill Swap Platform</strong></div>
+  <nav class="nav-links">
+    <a href="home.html">Home</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Incoming Requests</h1>
+  <div id="incomingRequestsContainer">
+    <!-- Incoming requests appear here -->
+  </div>
+</main>
+
+<script>
+  const loggedInEmail = localStorage.getItem('userEmail') || 'user1@example.com';
+
+  function getAllUserProfiles() {
+    const users = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('profile_')) {
+        try {
+          users.push(JSON.parse(localStorage.getItem(key)));
+        } catch {}
+      }
+    }
+    return users;
+  }
+
+  function getRequests() {
+    const reqStr = localStorage.getItem('requests');
+    return reqStr ? JSON.parse(reqStr) : [];
+  }
+
+  function saveRequests(requests) {
+    localStorage.setItem('requests', JSON.stringify(requests));
+  }
+
+  function renderIncomingRequests() {
+    const container = document.getElementById('incomingRequestsContainer');
+    const requests = getRequests().filter(r => r.to === loggedInEmail);
+    const profiles = getAllUserProfiles();
+
+    if (requests.length === 0) {
+      container.innerHTML = '<p class="no-requests">No incoming requests at the moment.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+
+    requests.forEach(req => {
+      const fromUser = profiles.find(p => p.email === req.from);
+      const fromName = fromUser ? fromUser.name || fromUser.email : req.from;
+
+      const div = document.createElement('div');
+      div.className = 'request-item';
+
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'request-info';
+      infoDiv.innerHTML = `
+        <p><strong>From:</strong> ${fromName}</p>
+        <p><strong>Skill Offered:</strong> ${fromUser ? fromUser.skillOffered || '-' : '-'}</p>
+        <p><strong>Skill Wanted:</strong> ${fromUser ? fromUser.skillWanted || '-' : '-'}</p>
+      `;
+
+      div.appendChild(infoDiv);
+
+      const actionsDiv = document.createElement('div');
+      actionsDiv.style.display = 'flex';
+      actionsDiv.style.alignItems = 'center';
+
+      const statusLabel = document.createElement('span');
+      statusLabel.className = 'status ' + req.status;
+      statusLabel.textContent = req.status;
+
+      actionsDiv.appendChild(statusLabel);
+
+      if (req.status === 'pending') {
+        const btnAccept = document.createElement('button');
+        btnAccept.textContent = 'Accept';
+        btnAccept.className = 'btn-accept';
+        btnAccept.onclick = () => changeRequestStatus(req.from, 'accepted');
+
+        const btnReject = document.createElement('button');
+        btnReject.textContent = 'Reject';
+        btnReject.className = 'btn-reject';
+        btnReject.onclick = () => changeRequestStatus(req.from, 'rejected');
+
+        actionsDiv.appendChild(btnAccept);
+        actionsDiv.appendChild(btnReject);
+      }
+
+      div.appendChild(actionsDiv);
+
+      container.appendChild(div);
+    });
+  }
+
+  function changeRequestStatus(fromEmail, newStatus) {
+    const requests = getRequests();
+    const index = requests.findIndex(r => r.from === fromEmail && r.to === loggedInEmail && r.status === 'pending');
+    if (index !== -1) {
+      requests[index].status = newStatus;
+      saveRequests(requests);
+      renderIncomingRequests();
+      alert(`Request ${newStatus}!`);
+    }
+  }
+
+  renderIncomingRequests();
+</script>
+
+</body>
+</html>
