@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <title>Skill Swap Platform</title>
   <style>
-   
-     {
+    /* Reset and basics */
+    * {
       box-sizing: border-box;
     }
 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      padding-top: 60px; 
+      padding-top: 60px; /* space for fixed header */
       background-color: #f5f7fa;
       min-height: 100vh;
       display: flex;
@@ -118,7 +118,7 @@
   </div>
 
   <script>
- 
+    // Redirect if already logged in
     if(localStorage.getItem('userEmail')) {
       window.location.href = "profile.html";
     }
