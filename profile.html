@@ -170,7 +170,8 @@
       skillOffered: form['skill-offered'].value.trim(),
       skillWanted: form['skill-wanted'].value.trim(),
       availability: form.availability.value,
-      profileVisibility: profileVisibility
+      profileVisibility: profileVisibility,
+       email: userEmail ,
     };
 
     if (!profileData.name || !profileData.location || !profileData.skillOffered || !profileData.skillWanted || !profileData.availability) {
